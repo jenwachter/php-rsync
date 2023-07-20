@@ -56,6 +56,13 @@ class Rsync
       throw new \ErrorException('List of files to include cannot be empty.');
     }
 
+    // // cause every rsync to fail (for testing)
+    // throw new \ErrorException('NetStorage RSYNC failed.');
+
+    if (str_contains($destinationDirectory, 'thumbnail')) {
+      throw new \ErrorException('NetStorage RSYNC failed.');
+    }
+
     $command = $this->compileCommand($sourceDirectory, $destinationDirectory, $files, $delete,$dryRun);
 
     exec($command, $output, $resultCode);
