@@ -59,9 +59,9 @@ class Rsync
     // // cause every rsync to fail (for testing)
     // throw new \ErrorException('NetStorage RSYNC failed.');
 
-    if (str_contains($destinationDirectory, 'thumbnail')) {
-      throw new \ErrorException('NetStorage RSYNC failed.');
-    }
+    // if (str_contains($destinationDirectory, 'thumbnail')) {
+    //   throw new \ErrorException('NetStorage RSYNC failed.');
+    // }
 
     $command = $this->compileCommand($sourceDirectory, $destinationDirectory, $files, $delete,$dryRun);
 

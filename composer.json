@@ -9,7 +9,7 @@
   },
   "autoload": {
     "psr-4" : {
-      "PhpRsync\\" : ["src/", "tests/src/"]
+      "PhpRsync\\" : ["src/", "tests/src/", "tests/mocks/"]
     }
   },
   "require-dev": {
