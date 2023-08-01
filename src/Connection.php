@@ -12,7 +12,13 @@ class Connection
    * @param array|null $auth           For SSH key authentication: ['ssh_key' => '/path/to/ssh/key']
    *                                   For username/password authentication: ['password' => 'the_password']
    */
-  public function __construct(protected string $type = 'local', protected string $destinationRootDir = '/', protected string|null $host = null, protected string|null $user = null, protected array|null $auth = null)
+  public function __construct(
+    protected string $type = 'local',
+    protected string $destinationRootDir = '/',
+    protected string|null $host = null,
+    protected string|null $user = null,
+    protected array|null $auth = null
+  )
   {
     $this->validateType();
     $this->validateDestinationRootDir();

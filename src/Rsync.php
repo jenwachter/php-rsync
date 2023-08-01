@@ -15,9 +15,9 @@ class Rsync
    * Upload a file.
    * In the examples, the full path of the file to be uploaded is:
    * /var/www/html/project/uploads/2023-05/filename.jpg
-   * @param string $basepath System path that cooresponds to Akamai upload directory.
+   * @param string $basepath System path that cooresponds to upload directory.
    *                         Example: /var/www/html/project
-   *                         Akamai upload directory will contain content in `project` directory
+   *                         Upload directory will contain content in `project` directory
    * @param string $filepath Filepath relative to basepath
    *                         Drupal example: uploads/2023-05/filename.jpg
    * @param bool   $dryRun   Generate the command in dry-run mode (true) or not (false)
