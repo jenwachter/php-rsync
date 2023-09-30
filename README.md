@@ -1,6 +1,6 @@
 # PHP Rsync
 
-A simple rsync library for PHP, able to perform to local, remote, and [Akamai NetStorage](https://techdocs.akamai.com/netstorage/docs/use-rsync) hosts.
+A simple rsync library for PHP, able to perform local, remote, and [Akamai NetStorage](https://techdocs.akamai.com/netstorage/docs/use-rsync) syncs.
 
 * [Requirements](#requirements)
 * [Installation](#installation)
