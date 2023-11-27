@@ -49,8 +49,14 @@ class RsyncTest extends \PHPUnit\Framework\TestCase
     $rsyncer = new Rsync($connection);
 
     $this->assertEquals(
-      'rsync -a --include="file1\'s.jpg" --include="file2\"test\".gif" --exclude="*" /source/directory/ /dest/root/dest/directory/ 2>&1',
-      $rsyncer->compileCommand('/source/directory/', 'dest/directory/', ['file1\'s.jpg', 'file2"test".gif'])
+      'rsync -a --include="file1\'s.jpg" --include="file2\"test\".gif" --include="file\\[1\\].jpg" --include="file\\[\\?\\].jpg" --include="file\\[\\*\\].jpg" --exclude="*" /source/directory/ /dest/root/dest/directory/ 2>&1',
+      $rsyncer->compileCommand('/source/directory/', 'dest/directory/', [
+        'file1\'s.jpg',
+        'file2"test".gif',
+        'file[1].jpg',
+        'file[?].jpg',
+        'file[*].jpg',
+      ])
     );
   }
 
