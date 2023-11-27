@@ -84,7 +84,7 @@ class Rsync
   public function compileCommand(string $sourceDirectory, string $destinationDirectory, array $files = [], bool $delete = false, bool $dryRun = false)
   {
     $include = array_map(function ($filename) {
-      $sanitized = addcslashes($filename, '"');
+      $sanitized = addcslashes($filename, '"[]*?');
       return "--include=\"{$sanitized}\"";
     }, $files);
 
