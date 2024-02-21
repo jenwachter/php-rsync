@@ -6,68 +6,42 @@ use Psr\Log\LoggerInterface;
 
 class Rsync
 {
+  protected array $defaultOptions = [
+    'archive' => true,
+    'compress' => true,
+    'cwd' => null,
+    'delete' => false,
+    'dryrun' => false,
+    'exclude' => null,
+    'include' => null,
+    'relative' => false,
+  ];
+
   public function __construct(protected Connection $connection, protected LoggerInterface|null $logger = null)
   {
 
   }
 
   /**
-   * Upload a file.
-   * In the examples, the full path of the file to be uploaded is:
-   * /var/www/html/project/uploads/2023-05/filename.jpg
-   * @param string $basepath System path that cooresponds to upload directory.
-   *                         Example: /var/www/html/project
-   *                         Upload directory will contain content in `project` directory
-   * @param string $filepath Filepath relative to basepath
-   *                         Drupal example: uploads/2023-05/filename.jpg
-   * @param bool   $dryRun   Generate the command in dry-run mode (true) or not (false)
-   * @return int
+   * @param string $sourceDirectory      Source directory
+   * @param string $destinationDirectory Destination relative to Connection::destinationRootDir
+   * @param array $options               Options (to override default options)
+   * @param $returnCommand               Unless testing, keep false
+   * @return int|string
    * @throws \ErrorException
    */
-
-  /**
-   * @param string $sourceDirectory       Where the files are on the local system
-   * @param string $destinationDirectory  Where the files are going on the destination system relative to
-   *                                      Connection::destinationRootDir
-   * @param array  $files
-   * @param bool   $dryRun
-   * @return int
-   */
-  public function upload(string $sourceDirectory, string $destinationDirectory, array $files = [], bool $dryRun = false): int
+  public function run(string $sourceDirectory, string $destinationDirectory, array $options = [], $returnCommand = false)
   {
-    return $this->rsync($sourceDirectory, $destinationDirectory, $files, false,$dryRun);
-  }
+    $options = $this->mergeOptionsWithDefaults($options);
+    $command = $this->compileCommand($sourceDirectory, $destinationDirectory, $options);
 
-  /**
-   * @param string $sourceDirectory
-   * @param string $destinationDirectory
-   * @param array  $files
-   * @param bool   $dryRun
-   * @return int
-   */
-  public function delete(string $sourceDirectory, string $destinationDirectory, array $files = [], bool $dryRun = false): int
-  {
-    return $this->rsync($sourceDirectory, $destinationDirectory, $files, true,$dryRun);
-  }
-
-  protected function rsync(string $sourceDirectory, string $destinationDirectory, array $files = [], bool $delete = false, bool $dryRun = false)
-  {
-    if (empty($files)) {
-      throw new \ErrorException('List of files to include cannot be empty.');
+    if ($returnCommand) {
+      return $command;
     }
-
-    // // cause every rsync to fail (for testing)
-    // throw new \ErrorException('NetStorage RSYNC failed.');
-
-    // if (str_contains($destinationDirectory, 'thumbnail')) {
-    //   throw new \ErrorException('NetStorage RSYNC failed.');
-    // }
-
-    $command = $this->compileCommand($sourceDirectory, $destinationDirectory, $files, $delete,$dryRun);
 
     exec($command, $output, $resultCode);
 
-    if ($dryRun && $this->logger) {
+    if ($options['dryrun'] === true && $this->logger) {
       $this->logger->info('NetStorage RSYNC dry run', [
         'command' => $command,
         'output' => $output,
@@ -81,26 +55,60 @@ class Rsync
     return $resultCode;
   }
 
-  public function compileCommand(string $sourceDirectory, string $destinationDirectory, array $files = [], bool $delete = false, bool $dryRun = false)
+  public function compileCommand(string $sourceDirectory, string $destinationDirectory, array $options = [])
   {
-    $include = array_map(function ($filename) {
-      $sanitized = addcslashes($filename, '"[]*?');
-      return "--include=\"{$sanitized}\"";
-    }, $files);
+    $command = [];
 
-    $command = [
-      'rsync -a',
-      $this->connection->getSSHKey(),
-      $dryRun ? '--dry-run --verbose' : '',
-      $delete ? '--delete' : '',
-      implode(' ', $include),
-      '--exclude="*"',
-      $this->standardizeDirectory($sourceDirectory),
-      $this->connection->getDestination($this->standardizeDirectory($destinationDirectory)),
-      '2>&1', // redirect to STDOUT (php can capture this)
-    ];
+    if ($options['cwd']) {
+      $command[] = "cd {$options['cwd']} &&";
+    }
+
+    $command[] =  'rsync';
+
+    if ($ssh = $this->connection->getSSHKey()) {
+      $command[] = $ssh;
+    }
+
+    if ($options['dryrun']) {
+      $command[] =  '--dry-run --verbose';
+    }
+
+    if ($options['archive']) {
+      $command[] =  '--archive';
+    }
+
+    if ($options['delete']) {
+      $command[] =  '--delete';
+    }
+
+    if ($options['include']) {
+      $include = $this->sanitizeIncludeExclude('include', (array) $options['include']);
+      array_push($command, ...$include);
+    }
+
+    if ($options['exclude']) {
+      $include = $this->sanitizeIncludeExclude('exclude', (array) $options['exclude']);
+      array_push($command, ...$include);
+    }
+
+    $command[] = $this->standardizeDirectory($sourceDirectory);
+    $command[] = $this->connection->getDestination($this->standardizeDirectory($destinationDirectory));
+    $command[] = '2>&1'; // redirect to STDOUT
 
     return implode(' ', array_filter($command));
+  }
+
+  protected function mergeOptionsWithDefaults($options)
+  {
+    return array_merge($this->defaultOptions, $options);
+  }
+
+  protected function sanitizeIncludeExclude($which, $array)
+  {
+    return array_map(function ($a) use ($which) {
+      $sanitized = $a !== '*' ? addcslashes($a, '"[]*?') : '*';
+      return "--{$which}=\"{$sanitized}\"";
+    }, $array);
   }
 
   protected function standardizeDirectory($dir)

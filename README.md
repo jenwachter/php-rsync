@@ -1,6 +1,6 @@
 # PHP Rsync
 
-A simple rsync library for PHP, able to perform local, remote, and [Akamai NetStorage](https://techdocs.akamai.com/netstorage/docs/use-rsync) syncs.
+A simple rsync library for PHP, able to perform local, remote, and [Akamai NetStorage](https://techdocs.akamai.com/netstorage/docs/use-rsync) syncs. Note that this library is not all-inclusive of everything that can be done with the rsync command.
 
 * [Requirements](#requirements)
 * [Installation](#installation)
@@ -80,25 +80,23 @@ $rsync = new Rsync($akamai);
 
 ### Perform rsync transfers
 
-#### Upload files
-
 ```php
-$rsync->upload(
+$options = [];
+
+$rsync->run(
   '/path/to/source/dir',
   'relative/path/to/destination/dir',
-  ['file1.jpg', 'file2.jpg', 'file3.jpg']
+  $options
 );
 ```
 
-### Delete files
+#### Available options
 
-Note: the files must first be removed from the source directory in order for them to be deleted in the destination directory.
-
-```php
-$rsync->delete(
-  '/path/to/source/dir',
-  'relative/path/to/destination/dir',
-  ['file1.jpg', 'file2.jpg', 'file3.jpg']
-);
-```
-
+* __archive__: Boolean. Adds `--archive` flag, if true. Default: true
+* __compress__: Boolean. Adds `--compress` flag, if true. Default: true
+* __cwd__: String. Changes the current working directory prior to running the `rsync` command. Default: null
+* __delete__: Boolean. Adds `--delete` flag, if true. Default: false
+* __dryrun__: Boolean. Adds `--dry-run` and `--verbose` flags, if true. Default: false
+* __exclude__: Array|String. If a string is passed, adds `--exclude="<string>"` flag. if an array of strings is passed, adds multiple `--exclude="<string>"` flags. Default: null
+* __include__: Array|String. If a string is passed, adds `--include="<string>"` flag. if an array of strings is passed, adds multiple `--include="<string>"` flags. Default: null
+* __relative__: Boolean. Adds `--relative` flag, if true. Default: false
