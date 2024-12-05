@@ -42,14 +42,14 @@ class Rsync
     exec($command, $output, $resultCode);
 
     if ($options['dryrun'] === true && $this->logger) {
-      $this->logger->info('NetStorage RSYNC dry run', [
+      $this->logger->info('RSYNC dry run', [
         'command' => $command,
         'output' => $output,
       ]);
     }
 
     if ($resultCode > 0) {
-      throw new \ErrorException('NetStorage RSYNC failed. ' . implode('\n', $output));
+      throw new \ErrorException('RSYNC failed. ' . implode('\n', $output));
     }
 
     return $resultCode;
